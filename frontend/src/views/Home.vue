@@ -1,17 +1,20 @@
 <template>
-  <div class="container column is-10">
-    <div class="section">
-      <div class="card">
-        <div class="card-header"><p class="card-header-title">Header</p></div>
-        <div class="card-content"><div class="content">Content</div></div>
+  <div class="container">
+    <div class="columns is-centered">
+      <div class="column is-half">
+        1
       </div>
-      <br />
-      
-      <div class="card">
-        <div class="card-header"><p id="time" class="card-header-title"></p></div>
-        <div class="card-content"><button class="button" @click="start()">start</button></div>
+      <div class="column is-half">
+        2
       </div>
-      <br />
+    </div>
+    <div id="col2" class="columns is-centered">
+      <div class="column is-half">
+        3
+      </div>
+      <div class="column is-half">
+        4
+      </div>  
     </div>
   </div>
 </template>
@@ -36,24 +39,29 @@ export default {
         this.$router.push({path: '/signin'})
       }
     },
-    start() {
-      this.otpSending = true;
-      var timeleft = 10;
-      var downloadTimer = setInterval(() => {
-          if(timeleft <= 0){
-            document.getElementById("time").textContent = timeleft + " s";
-            clearInterval(downloadTimer);
-            this.otpSending = false;
-          }else{
-            document.getElementById("time").textContent = timeleft + " s";
-          }
-          timeleft -= 1;
-        }, 1000);
-    }
+
   }
 }
 </script>
 
 <style>
+  .column{
+    border:solid red 1px;
+    margin: 10px;
+  }
+  .container{
+    min-height: 90vh;
+    padding-left: 20vw;
+    padding-right: 20vw;
+    padding-top: 30vh;
 
+  }
+  @media screen and (max-width: 768px) {
+    .container{
+      padding-top: 10px;
+    }
+    #col2{
+      margin-top: 10px;
+    }
+  }
 </style>
