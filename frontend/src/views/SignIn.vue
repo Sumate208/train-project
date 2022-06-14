@@ -1,39 +1,120 @@
 <template>
-    <div class="body">
-        <div class="field">
-            <label class="label">หน่วยงาน</label>
-            <div class="control">
-                <div class="select">
-                <select>
-                    <option>Select dropdown</option>
-                    <option>With options</option>
-                </select>
+  <section class="hero is-fullheight">
+    <div class="hero-body">
+      <div class="container">
+        <div class="columns is-centered">
+          <div class="column is-5-tablet is-4-desktop is-3-widescreen">
+            <form action="" class="box">
+              <div class="field">
+                <label for="" class="label">เบอร์โทรศัพท์</label>
+                <div class="control has-icons-left">
+                  <input type="text" maxlength="10" placeholder="Ex.08X-XXX-XXXX" class="input">
+                  <span class="icon is-small is-left">
+                    <i class="fa-solid fa-phone"></i>
+                  </span>
+                  <button id="sent" class="button is-right disabled">
+                    <i class="fa-solid fa-arrow-right"></i>
+                  </button>
                 </div>
-            </div>
+              </div>
+              <div class="field">
+                <label for="" class="label">รหัส OTP</label>
+                <div class="control has-icons-left">
+                  <input type="password" maxlength="6" placeholder="123456" class="input">
+                  <span class="icon is-small is-left">
+                    <i class="fa fa-envelope"></i>
+                  </span>
+                </div>
+              </div>
+              <div class="field">
+                <label for="" class="checkbox">
+                  <input type="checkbox" v-model="remember">
+                    Remember me
+                  </label>
+              </div>
+              <div class="field">
+                <button class="button is-success">
+                  Login
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
-
-        <div class="field">
-            <label class="label">รายละเอียด</label>
-            <div class="control">
-                <textarea class="textarea" placeholder="ระบุรายละเอียด"></textarea>
-            </div>
-        </div>
-
-        <div class="field is-grouped">
-            <div class="control">
-                <button class="button is-link">ส่งรายงาน</button>
-            </div>
-            <div class="control">
-                <button class="button is-link is-light">ยกเลิก</button>
-            </div>
-        </div>
+      </div>
     </div>
+  </section>
 </template>
 
+<script>
+import {
+  required,
+  helpers,
+} from "vuelidate/lib/validators";
+
+function mobile(value) {
+  return !helpers.req(value) || !!value.match(/0[0-9]{9}/);
+}
+
+function otp(value) {
+  return !helpers.req(value) || !!value.match(/[0-9]{6}/);
+}
+
+export default {
+  data() {
+    return {
+      mobile: "",
+      otp: "",
+      otpSending: false,
+      timer: 60,
+    };
+  },
+  methods: {
+    sentOtp() {
+      this.$v.$touch();
+      if (!this.$v.$invalid) {
+        var downloadTimer = setInterval(function(){
+          if(this.timer <= 0){
+            clearInterval(downloadTimer);
+            this.otpSending = false;
+          }
+          this.timer -= 1;
+        }, 1000);
+      }
+    },
+    submit() {
+      // Validate all fields
+      this.$v.$touch();
+
+      // เช็คว่าในฟอร์มไม่มี error
+      // if (!this.$v.$invalid) {
+      //   const data = {
+      //     mobile: this.mobile,
+      //     otp: this.first_name,
+      //   };
+      // }
+    },
+  },
+  validations: {
+    otp: {
+      required: required,
+      otp: otp,
+    },
+    mobile: {
+      required: required,
+      mobile: mobile,
+    },
+  },
+};
+</script>
+
 <style>
-    .body{
-        padding-top: 20px;
-        padding-left: 30vw;
-        padding-right: 30vw;
-    }
+  .body{
+    padding-top: 20px;
+    padding-left: 30vw;
+    padding-right: 30vw;
+  }
+  #sent {
+    position: absolute;
+    right: 0;
+  }
 </style>

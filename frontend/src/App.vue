@@ -71,8 +71,10 @@ export default {
   },
   methods: {
     logOut(){
-      this.user=''
+      this.user='';
+      this.$router.push({path: '/signin'});
     },
+    
   }
 }
 </script>
