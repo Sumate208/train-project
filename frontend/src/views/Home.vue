@@ -1,19 +1,19 @@
 <template>
-  <div class="container">
+  <div class="container homeBody">
     <div class="columns is-centered">
-      <div class="column is-half">
-        1
+      <div class="column category is-half">
+        <button class="button homeButton"></button>
       </div>
-      <div class="column is-half">
-        2
+      <div class="column category is-half">
+        <button class="button homeButton"></button>
       </div>
     </div>
     <div id="col2" class="columns is-centered">
-      <div class="column is-half">
-        3
+      <div class="column category is-half">
+        <button class="button homeButton"></button>
       </div>
-      <div class="column is-half">
-        4
+      <div class="column category is-half">
+        <button class="button homeButton"></button>
       </div>  
     </div>
   </div>
@@ -45,19 +45,25 @@ export default {
 </script>
 
 <style>
-  .column{
-    border:solid red 1px;
+  .category{
+    padding: 0;
     margin: 10px;
+    height: 20vh;
   }
-  .container{
+  .homeBody{
     min-height: 90vh;
     padding-left: 20vw;
     padding-right: 20vw;
-    padding-top: 30vh;
-
+    padding-top: 20vh;
+  }
+  .homeButton{
+    width: 100%;
+    height: 100%;
+    -webkit-box-shadow: 0px 0px 10px 0px #000000; 
+    box-shadow: 0px 0px 10px 0px #000000;
   }
   @media screen and (max-width: 768px) {
-    .container{
+    .homeBody{
       padding-top: 10px;
     }
     #col2{

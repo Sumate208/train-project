@@ -22,7 +22,7 @@
               <div class="field">
                 <label for="" class="label">รหัส OTP</label>
                 <div class="control has-icons-left">
-                  <input type="password" maxlength="6" placeholder="123456" class="input">
+                  <input type="text" maxlength="6" placeholder="123456" class="input">
                   <span class="icon is-small is-left">
                     <i class="fa fa-envelope"></i>
                   </span>

@@ -72,6 +72,7 @@ export default {
   methods: {
     logOut(){
       this.user='';
+      this.navMobile=false;
       this.$router.push({path: '/signin'});
     },
     
@@ -111,14 +112,6 @@ nav a.router-link-exact-active {
 }
 .text-header {
   font-size: 30px
-}
-@media screen and (max-width: 768px) {
-  #menu-toggle:checked + .nav-menu {
-    display: block;
-  }
-  .text-header {
-    font-size: 20px
-  }
 }
 @keyframes fadeIn {
 	from {
