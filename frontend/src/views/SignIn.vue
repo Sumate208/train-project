@@ -12,8 +12,10 @@
                   <span class="icon is-small is-left">
                     <i class="fa-solid fa-phone"></i>
                   </span>
-                  <button id="sent" class="button is-right disabled">
-                    <i class="fa-solid fa-arrow-right"></i>
+                  <button id="sent" class="button is-right" @click="sentOtp()" :disabled="otpSending">
+                    <span id="countdowntimer" v-show="otpSending"></span>
+                    <span v-if="!otpSending && firstCount"><i class="fa-solid fa-arrow-right"></i></span>
+                    <span v-show="!otpSending && !firstCount"><i class="fa-solid fa-arrow-rotate-right"></i></span>
                   </button>
                 </div>
               </div>
@@ -55,50 +57,39 @@ function mobile(value) {
   return !helpers.req(value) || !!value.match(/0[0-9]{9}/);
 }
 
-function otp(value) {
-  return !helpers.req(value) || !!value.match(/[0-9]{6}/);
-}
-
 export default {
   data() {
     return {
       mobile: "",
       otp: "",
       otpSending: false,
-      timer: 60,
+      firstCount: true,
     };
   },
   methods: {
     sentOtp() {
-      this.$v.$touch();
-      if (!this.$v.$invalid) {
-        var downloadTimer = setInterval(function(){
-          if(this.timer <= 0){
+        
+        var timeleft = 10;
+        document.getElementById("countdowntimer").textContent = timeleft + "s";
+        this.otpSending = true;
+        var downloadTimer = setInterval(() => {
+          if(timeleft <= 0){
+            document.getElementById("countdowntimer").textContent = timeleft + "s";
             clearInterval(downloadTimer);
+            this.firstCount = false;
             this.otpSending = false;
+          }else{
+            document.getElementById("countdowntimer").textContent = timeleft + "s";
           }
-          this.timer -= 1;
+          timeleft -= 1;
         }, 1000);
-      }
+      
     },
     submit() {
-      // Validate all fields
-      this.$v.$touch();
 
-      // เช็คว่าในฟอร์มไม่มี error
-      // if (!this.$v.$invalid) {
-      //   const data = {
-      //     mobile: this.mobile,
-      //     otp: this.first_name,
-      //   };
-      // }
     },
   },
   validations: {
-    otp: {
-      required: required,
-      otp: otp,
-    },
     mobile: {
       required: required,
       mobile: mobile,
