@@ -6,14 +6,32 @@
           <div class="column is-5-tablet is-4-desktop is-3-widescreen">
             <form action="" class="box">
               <div class="field">
-                <label class="label">เลขบัตร</label>
+                <label class="label">Username</label>
                 <div class="control has-icons-left">
-                  <input type="text" placeholder="เลขบัตร" class="input">
+                  <input type="text" placeholder="Username" class="input">
                   <span class="icon is-small is-left">
                     <i class="fa-solid fa-user"></i>
                   </span>
                 </div>
               </div>
+
+              <div class="field">
+                <label class="label">Password</label>
+                <div class="control has-icons-left has-icon-right">
+                  <input :type="[showPass ? 'text' : 'password']" placeholder="Password" class="input">
+                  <span class="icon is-small is-left">
+                    <i class="fa-solid fa-lock"></i>
+                  </span>
+                  <button id="sPassBut" class="button is-right" @click="showPass = !showPass" :disabled="otpSending">
+                    <span v-show="!showPass" class="icon is-small">
+                        <i class="fa-solid"  :class="[showPass ? 'fa-eye-slash' : 'fa-eye']"></i>
+                    </span>
+                  </button>
+                  
+                  
+                </div>
+              </div>
+
               <div class="field">
                 <label for="" class="checkbox">
                   <input type="checkbox" v-model="remember">
@@ -46,13 +64,21 @@ function mobile(value) {
 export default {
   data() {
     return {
-      mobile: "",
-      otp: "",
-      otpSending: false,
-      firstCount: true,
+      user: null,
+      password: null,
+      remember:false,
+      showPass: false,
     };
   },
+  mounted () {
+    // this.inLogin()
+    this.loadUsername()
+  },
   methods: {
+    loadUsername(){
+        const rememLs = localStorage.getItem("remember");
+        if(rememLs)this.user = rememLs
+    },
     sentOtp() {
         
         var timeleft = 10;
@@ -72,7 +98,13 @@ export default {
       
     },
     submit() {
-
+        if(this.remember){
+            localStorage.setItem("username", this.user_number)
+        }
+        if(localStorage.getItem("username") && !this.remember){
+            localStorage.removeItem("username")
+        }
+        alert("login ")
     },
   },
   validations: {
@@ -90,8 +122,12 @@ export default {
     padding-left: 20vw;
     padding-right: 20vw;
   }
-  #sent {
+  #sPassBut {
     position: absolute;
     right: 0;
+    border: 0px;
+    margin: 2px;
+    width: 35px;
+    height: 35px
   }
 </style>
