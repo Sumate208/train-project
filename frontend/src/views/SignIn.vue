@@ -6,25 +6,11 @@
           <div class="column is-5-tablet is-4-desktop is-3-widescreen">
             <form action="" class="box">
               <div class="field">
-                <label for="" class="label">เบอร์โทรศัพท์</label>
+                <label class="label">เลขบัตร</label>
                 <div class="control has-icons-left">
-                  <input type="text" maxlength="10" placeholder="Ex.08X-XXX-XXXX" class="input">
+                  <input type="text" placeholder="เลขบัตร" class="input">
                   <span class="icon is-small is-left">
-                    <i class="fa-solid fa-phone"></i>
-                  </span>
-                  <button id="sent" class="button is-right" @click="sentOtp()" :disabled="otpSending">
-                    <span id="countdowntimer" v-show="otpSending"></span>
-                    <span v-if="!otpSending && firstCount"><i class="fa-solid fa-arrow-right"></i></span>
-                    <span v-show="!otpSending && !firstCount"><i class="fa-solid fa-arrow-rotate-right"></i></span>
-                  </button>
-                </div>
-              </div>
-              <div class="field">
-                <label for="" class="label">รหัส OTP</label>
-                <div class="control has-icons-left">
-                  <input type="text" maxlength="6" placeholder="123456" class="input">
-                  <span class="icon is-small is-left">
-                    <i class="fa fa-envelope"></i>
+                    <i class="fa-solid fa-user"></i>
                   </span>
                 </div>
               </div>
@@ -101,8 +87,8 @@ export default {
 <style>
   .body{
     padding-top: 20px;
-    padding-left: 30vw;
-    padding-right: 30vw;
+    padding-left: 20vw;
+    padding-right: 20vw;
   }
   #sent {
     position: absolute;

@@ -58,10 +58,7 @@
 export default {
   data () {
     return {
-      user: {
-        first_name:'Firstname',
-        last_name:'Lastname',
-      },
+      user: null,
       navMobile:false,
       dropdown:false
     }
