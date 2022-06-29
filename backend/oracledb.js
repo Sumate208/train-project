@@ -11,7 +11,13 @@ async function run(){
     }catch(err){
         console.log(err)
     }finally{
-        conn.close();
+        if(conn){
+            try{
+                conn.close();
+            }catch(err){
+                console.log(err)
+            }
+        }
     }
 
 
