@@ -1,8 +1,9 @@
 const express = require("express");
 const config = require("../config");
 const oracledb = require("oracledb");
+const path = require("path")
 
-const pool = await oracledb.createPool(config);
+const pool = oracledb.createPool(config);
 
 router = express.Router();
 
@@ -10,7 +11,7 @@ router.get('/', (req, res) => {
     res.send('Hello World!')
 })
 
-router.get('/alluser', (req, res) => {
+router.get('/alluser', async (req, res) => {
     const conn = await pool.getConnection()
     try{
         const result = await conn.execute("SELECT * FROM USERS",[],{outFormat: oracledb.OBJECT});
