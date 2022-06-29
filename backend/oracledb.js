@@ -1,23 +1,39 @@
 const oracledb = require("oracledb")
-const pool = require("./config")
+const config = require("./config")
 // const dbconfig = require("./config")
 
 async function run(){
+    const pool = await oracledb.createPool(config)
     const conn = await pool.getConnection()
     try{
-        const result = await conn.execute("SELECT * FROM USERS;",)
-        console.log(result)
+        const result = await conn.execute("SELECT * FROM USERS",[],{outFormat: oracledb.OBJECT});
+        console.log(result.rows)
     }catch(err){
         console.log(err)
     }finally{
-        if(conn){
-            try{
-             conn.close();
-            }catch(err){
-                console.log(err)
-            }
-        }
+        conn.close();
     }
+
+
+
+    // ex2
+    // const connection = await pool.getConnection()
+    // try{
+    //     const result = await connection.execute("SELECT * FROM USERS;",)
+    //     console.log(result)
+    // }catch(err){
+    //     console.log(err)
+    // }finally{
+    //     if(conn){
+    //         try{
+    //          conn.close();
+    //         }catch(err){
+    //             console.log(err)
+    //         }
+    //     }
+    // }
+
+    // ex1
     // let conn;
     // try{
     //     conn = await oracledb.getConnection({

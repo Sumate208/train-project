@@ -10,7 +10,8 @@ router.get('/', (req, res) => {
     res.send('Hello World!')
 })
 
-router.get('/test', async (req, res, next) => {
+router.post('/signup', async (req, res, next) => {
+    const data = req.data
     const pool = oracledb.createPool(config);
     const conn = await pool.getConnection();
     try {
