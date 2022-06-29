@@ -50,42 +50,41 @@
 
               <div class="field">
                 <label class="label">หน่วยงาน</label>
-                <div class="control has-icons-left">
-
+                <div class="control">
                   <div class="select">
                     <select>
-                      <option disabled color="red" selected>เลือกสังกัดหน่วยงาน</option>
-                      <option disabled>ด้านบริหาร</option>
-                      <option value="สำนักงานเลขานุการกรม">สำนักงานเลขานุการกรม</option>
-                      <option value="กองบริหารทรัพยากรบุคคล">กองบริหารทรัพยากรบุคคล</option>
-                      <option value="กลุ่มงานตรวจราชการ">กลุ่มงานตรวจราชการ</option>
-                      <option value="กลุ่มงานตรวจสอบภายใน">กลุ่มงานตรวจสอบภายใน</option>
-                      <option value="กลุ่มพัฒนาระบบบริหาร">กลุ่มพัฒนาระบบบริหาร</option>
-                      <option value="กงอกฏหมาย">กงอกฏหมาย</option>
-                      <option value="กองบริหารการคลัง">กองบริหารการคลัง</option>
-                      <option value="กองยุทธศาสตร์และแผนงาน">กองยุทธศาสตร์และแผนงาน</option>
-                      <option value="ศูนย์เทคโนโลยีสารสนเทศและการสื่อสาร">ศูนย์เทคโนโลยีสารสนเทศและการสื่อสาร</option>
-                      <option disabled>ด้านที่ราชพัสดุ</option>
-                      <option value="กองบริหารที่ราชพัสดุภูมิภาค">กองบริหารที่ราชพัสดุภูมิภาค</option>
-                      <option value="กองเทคโนโลยีการสำรวจและฐานข้อมูลที่ราชพัสดุ">กองเทคโนโลยีการสำรวจและฐานข้อมูลที่ราชพัสดุ</option>
-                      <option value="กองบริหารจัดการกรรมสิทธิ์ที่ราชพัสดุ">กองบริหารจัดการกรรมสิทธิ์ที่ราชพัสดุ</option>
-                      <option value="กองพัฒนาธุรกิจและศักยภาพที่ราชพัสดุ">กองพัฒนาธุรกิจและศักยภาพที่ราชพัสดุ</option>
-                      <option value="กองพัฒนาและบำรุงรักษาอาคารราชพัสดุ">กองพัฒนาและบำรุงรักษาอาคารราชพัสดุ</option>
-                      <option value="กองบริหารที่ราชพัสดุกรุงเทพมหานคร">กองบริหารที่ราชพัสดุกรุงเทพมหานคร</option>
-                      <option value="สำนักงานธนารักษ์พื่้นที่">สำนักงานธนารักษ์พื่้นที่</option>
-                      <option disabled>ด้านการประเมินราคาทรัพย์สิน</option>
-                      <option value="กองประเมินราคาทรัพย์สิน">กองประเมินราคาทรัพย์สิน</option>
-                      <option value="กองมาตรฐานการประเมินทรัพย์สิน">กองมาตรฐานการประเมินทรัพย์สิน</option>
-                      <option disabled>บริหารเงินตราและทรัพย์สินอันมีค่าของแผนดิน</option>
-                      <option value="กองกษาปย์">กองกษาปย์</option>
-                      <option value="กองส่งเสริมและพัฒนาทรัพย์สินมีค่าของรัฐ">กองส่งเสริมและพัฒนาทรัพย์สินมีค่าของรัฐ</option>
-                      <option value="กองบริหารเงินตรา">กองบริหารเงินตรา</option>
-                      
+                      <option class="opTitle" disabled selected>เลือกสังกัดหน่วยงาน</option>
+                      <optgroup class="opTitle" label="ด้านบริหาร">
+                        <option value="สำนักงานเลขานุการกรม">สำนักงานเลขานุการกรม</option>
+                        <option value="กองบริหารทรัพยากรบุคคล">กองบริหารทรัพยากรบุคคล</option>
+                        <option value="กลุ่มงานตรวจราชการ">กลุ่มงานตรวจราชการ</option>
+                        <option value="กลุ่มงานตรวจสอบภายใน">กลุ่มงานตรวจสอบภายใน</option>
+                        <option value="กลุ่มพัฒนาระบบบริหาร">กลุ่มพัฒนาระบบบริหาร</option>
+                        <option value="กงอกฏหมาย">กงอกฏหมาย</option>
+                        <option value="กองบริหารการคลัง">กองบริหารการคลัง</option>
+                        <option value="กองยุทธศาสตร์และแผนงาน">กองยุทธศาสตร์และแผนงาน</option>
+                        <option value="ศูนย์เทคโนโลยีสารสนเทศและการสื่อสาร">ศูนย์เทคโนโลยีสารสนเทศและการสื่อสาร</option>
+                      </optgroup>
+                      <optgroup class="opTitle" label="ด้านที่ราชพัสดุ">
+                        <option value="กองบริหารที่ราชพัสดุภูมิภาค">กองบริหารที่ราชพัสดุภูมิภาค</option>
+                        <option value="กองเทคโนโลยีการสำรวจและฐานข้อมูลที่ราชพัสดุ">กองเทคโนโลยีการสำรวจและฐานข้อมูลที่ราชพัสดุ</option>
+                        <option value="กองบริหารจัดการกรรมสิทธิ์ที่ราชพัสดุ">กองบริหารจัดการกรรมสิทธิ์ที่ราชพัสดุ</option>
+                        <option value="กองพัฒนาธุรกิจและศักยภาพที่ราชพัสดุ">กองพัฒนาธุรกิจและศักยภาพที่ราชพัสดุ</option>
+                        <option value="กองพัฒนาและบำรุงรักษาอาคารราชพัสดุ">กองพัฒนาและบำรุงรักษาอาคารราชพัสดุ</option>
+                        <option value="กองบริหารที่ราชพัสดุกรุงเทพมหานคร">กองบริหารที่ราชพัสดุกรุงเทพมหานคร</option>
+                        <option value="สำนักงานธนารักษ์พื้นที่">สำนักงานธนารักษ์พื้นที่</option>
+                      </optgroup>
+                      <optgroup class="opTitle" label="ด้านการประเมินราคาทรัพย์สิน">
+                        <option value="กองประเมินราคาทรัพย์สิน">กองประเมินราคาทรัพย์สิน</option>
+                        <option value="กองมาตรฐานการประเมินทรัพย์สิน">กองมาตรฐานการประเมินทรัพย์สิน</option>
+                      </optgroup>
+                      <optgroup class="opTitle" label="บริหารเงินตราและทรัพย์สินอันมีค่าของแผนดิน">
+                        <option value="กองกษาปย์">กองกษาปย์</option>
+                        <option value="กองส่งเสริมและพัฒนาทรัพย์สินมีค่าของรัฐ">กองส่งเสริมและพัฒนาทรัพย์สินมีค่าของรัฐ</option>
+                        <option value="กองบริหารเงินตรา">กองบริหารเงินตรา</option>
+                      </optgroup>
                     </select>
                   </div>
-                  <span class="icon is-small is-left">
-                    <i class="fa-solid fa-user"></i>
-                  </span>
                 </div>
                 <!-- <template v-if="$v.user_number.$errors">
                   <p class="help is-danger" v-if="!$v.user_number.required">
@@ -228,5 +227,15 @@ export default {
   #sent {
     position: absolute;
     right: 0;
+  }
+  .select{
+    width: 100%;
+  }
+  select{
+    max-height: 30vh;
+    width: 100%;
+  }
+  select .opTitle{
+    font-weight: bold;    
   }
 </style>
