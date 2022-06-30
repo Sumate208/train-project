@@ -33,7 +33,7 @@
               <div class="field">
                 <label for="" class="label">รหัสบัตรประชาชน</label>
                 <div class="control has-icons-left">
-                  <input v-model="user_number" type="text" placeholder="Ex.1111111111111" class="input">
+                  <input v-model="id_card" type="text" placeholder="Ex.1111111111111" class="input">
                   <span class="icon is-small is-left">
                     <i class="fa-solid fa-user"></i>
                   </span>
@@ -52,7 +52,7 @@
                 <label class="label">หน่วยงาน</label>
                 <div class="control">
                   <div class="select">
-                    <select>
+                    <select v-model="agency">
                       <option class="opTitle" disabled selected>เลือกสังกัดหน่วยงาน</option>
                       <optgroup class="opTitle" label="ด้านบริหาร">
                         <option value="สำนักงานเลขานุการกรม">สำนักงานเลขานุการกรม</option>
@@ -143,6 +143,7 @@
 </template>
 
 <script>
+import axios from 'axios'
 // import useVuelidate from '@vuelidate/core'
 // import {
 //   required,
@@ -162,7 +163,8 @@ export default {
     return {
       first_name: "",
       last_name: "",
-      user_number: "",
+      id_card:"",
+      agency:"",
       mobile: "",
       otp: "",
       otpSending: false,
@@ -190,11 +192,24 @@ export default {
       // }
     },
     submit() {
-      // this.$v.$touch();
-      // if (!this.$v.$invalid) {
-      //   alert("Successfully signup")
-      // }
-      alert("Successfully Register")
+      const data = {
+          first_name: this.first_name,
+          last_name: this.last_name,
+          id_card: this.id_card,
+          agency: this.agency,
+          mobile: this.mobile,
+
+        };
+
+        axios
+          .post("http://localhost:3000/signup", data)
+          .then((res) => {
+            alert(res.data.msg);
+            this.$router.push({path: '/signin'})
+          })
+          .catch((err) => {
+            alert(err.response.data.details.message)
+          });
     },
   },
   // validations () {
