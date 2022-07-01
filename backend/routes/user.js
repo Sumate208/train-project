@@ -138,4 +138,4 @@ router.post('/testapi', async (req,res) => {
     }
 }) 
 
-exports.router = router
+module.exports = router;
