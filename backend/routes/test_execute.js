@@ -1,6 +1,9 @@
 const express = require("express");
 const config = require("../config");
 const oracledb = require("oracledb");
+const multer = require('multer')
+const path = require('path')
+
 
 let pool;
 const cPool = async() =>{
@@ -82,4 +85,54 @@ router.get('/NM_TABLE', async(req,res) => {
     }
 })
 
+function generateOTP () {
+    const result = [];
+    const characters = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    for (var i = 0; i < 6; i++) {
+      result.push(characters.charAt(Math.floor(Math.random() * characters.length)));
+   }
+   return result.join('');
+}
+
+router.put('/testapi',(req,res)=>{
+    const link = req.body.link;
+    try{
+        request({
+            uri:link,
+            function(err,res,body){
+                if(!err && res.statusCode === 200){
+                    console.log(body)
+                }
+            }
+        })
+        const otp = generateOTP()
+        res.status(200).json({link:link,otp:otp})
+    }catch(err){
+        res.status(400).json(err.toString());
+    }
+})
+
+router.post("/uploadsingle",upload.single("ImgSingle"), (req, res, next) => {
+    res.render("Uploaded")
+})
+
+router.post("/uploadmultiple",upload.array("photos",5), (req, res, next) => {
+    const files = req.files
+    if(!files){
+        const error = new Error("Please choose files")
+        error.httpStatusCode = 400
+        return next(error)
+    }
+    res.send(files)
+})
+
+var storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, '../static/uploads')
+    },
+    filename: (req, file, cb)=> {
+        cb(null, file.fieldname + '-' + Date.now())
+    }
+})
+var upload = multer({ storage: storage })
 module.exports = router;
