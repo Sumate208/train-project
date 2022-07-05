@@ -1,10 +1,11 @@
 const express = require("express");
 const config = require("../config");
 const oracledb = require("oracledb");
-const Joi = require('joi')
-const bcrypt = require('bcrypt');
+const Joi = require("joi")
+const bcrypt = require("bcrypt");
 const { generateToken } = require("../utils/token");
-const { isLoggedIn } = require('../middlewares/index')
+const { generateOTP } = require("../utils/otp");
+const { isLoggedIn } = require("../middlewares/index");
 let pool;
 const cPool = async() =>{
     pool = await oracledb.createPool(config);
@@ -94,16 +95,45 @@ router.post('/signup', async (req, res, next) => {
 })
 
 
+async function hashOTP(otp){
+    const saltRounds = 10;
+    var result = "";
+    await bcrypt.genSalt(10, (err, salt)=>{
+        bcrypt.hash(otp, salt, (err, hash)=>{
+            result = hash
+        })
+    })
+    return result;
+}
 
-router.get('/alluser', async (req, res) => {
+router.post('/sentotp', async (req,res) => {
     const conn = await pool.getConnection()
+    const otp = generateOTP();
+    var hOtp = hashOTP(otp);
+    // bcrypt.genSalt(10, (err, salt)=>{
+    //     bcrypt.hash(otp, salt, (err, hash)=>{
+    //         hOtp = hash
+    //     })
+    // })
+    // const mobile = req.body.mobile
     try{
-        const result = await conn.execute("SELECT * FROM USERS WHERE ID_CARD = :id_card",{id_card:{val:'1111111111111'}},{outFormat: oracledb.OBJECT});
-        console.log(result.rows)
-        res.status(200).json(result.rows)
- 
+        console.log(otp)
+        console.log(hOtp)
+        // const result = await conn.execute(`SELECT * FROM OTP`,{},{outFormat:oracledb.OUT_FORMAT_OBJECT})
+        // if(result.rows){
+        //     await conn.execute(`UPDATE OTP SET OTP = :v1 WHERE MOBILE = :v2`,
+        //         {v1:otp, v2:mobile},
+        //         {autoCommit:true})
+        // }else{
+        //     await conn.execute(`INSERT INTO OTP(OTP, MOBILE) VALUES(:v1, :v2)`,
+        //         {v1:otp, v2:mobile},
+        //         {autoCommit:true})
+        // }
+        // res.status(201).json({msg:"OTP ถูกส่งไปยังหมายเลขโทรศัพท์ "+mobile+" แล้ว"})
     }catch(err){
+        conn.rollback
         console.log(err)
+        res.status(400).json({msg:err})
     }finally{
         if(conn){
             try{
@@ -114,28 +144,5 @@ router.get('/alluser', async (req, res) => {
         }
     }
 })
-
-
-router.post('/testapi', async (req,res) => {
-    const conn = await pool.getConnection()
-    try{
-
-        await conn.execute("INSERT INTO TEST_API (ID, COL1) VALUES(:id, :col1)",{
-            id: {val:req.body.id},
-            col1: {val:req.body.col1}
-        },{autoCommit:true})
-        res.status(201).json({msg:"Insert completed"})
-    }catch(err){
-        console.log(err)
-    }finally{
-        if(conn){
-            try{
-                conn.close();
-            }catch(err){
-                console.log(err)
-            }
-        }
-    }
-}) 
 
 module.exports = router;

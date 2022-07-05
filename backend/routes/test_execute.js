@@ -3,7 +3,7 @@ const config = require("../config");
 const oracledb = require("oracledb");
 const multer = require('multer')
 const path = require('path')
-
+const bcrypt = require('bcrypt')
 
 let pool;
 const cPool = async() =>{
@@ -12,7 +12,7 @@ const cPool = async() =>{
 cPool();
 
 router = express.Router();
-
+// test connect to DB
 router.get('/get_demo', async (req,res) => {
     const conn = await pool.getConnection()
     try{
@@ -85,6 +85,7 @@ router.get('/NM_TABLE', async(req,res) => {
     }
 })
 
+/////// gen OTP
 function generateOTP () {
     const result = [];
     const characters = 'abcdefghijklmnopqrstuvwxyz0123456789';
@@ -93,6 +94,24 @@ function generateOTP () {
    }
    return result.join('');
 }
+
+router.get('/genotp',(req,res)=>{
+    const otp = generateOTP()
+    const saltRounds = 10
+    bcrypt.genSalt(saltRounds, (err, salt)=>{
+        bcrypt.hash(otp, salt, (err, hash)=>{
+            res.status(201).json({otp:otp,ctext:hash})
+        })
+    })
+})
+router.put('/checkotp',(req,res)=>{
+    const otp = req.body.otp
+    const ct = req.body.ct
+    bcrypt.compare(otp, ct, (err, result) => {
+        if(result)(res.status(201).json({msg:"OTP ถูกต้อง"}))
+        else{res.status(400).json({msg:"OTP ไม่ถูกต้อง"})}
+    })
+})
 
 router.put('/testapi',(req,res)=>{
     const link = req.body.link;
@@ -112,27 +131,32 @@ router.put('/testapi',(req,res)=>{
     }
 })
 
-router.post("/uploadsingle",upload.single("ImgSingle"), (req, res, next) => {
-    res.render("Uploaded")
-})
+/// upload image
+// router.post("/upload", upload ,(req, res) => {
+//     res.render("show", req.file)
+// })
 
-router.post("/uploadmultiple",upload.array("photos",5), (req, res, next) => {
-    const files = req.files
-    if(!files){
-        const error = new Error("Please choose files")
-        error.httpStatusCode = 400
-        return next(error)
-    }
-    res.send(files)
-})
+// router.post("/uploadmultiple",upload.array("photos",5), (req, res, next) => {
+//     const files = req.files
+//     if(!files){
+//         const error = new Error("Please choose files")
+//         error.httpStatusCode = 400
+//         return next(error)
+//     }
+//     res.send(files)
+// })
 
-var storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, '../static/uploads')
-    },
-    filename: (req, file, cb)=> {
-        cb(null, file.fieldname + '-' + Date.now())
-    }
-})
-var upload = multer({ storage: storage })
+// var storage = multer.diskStorage({
+//     destination: (req, file, cb) => {
+//         cb(null, '../static/uploads')
+//     },
+//     filename: (req, file, cb)=> {
+//         cb(null, file.fieldname + '-' + Date.now())
+//     }
+// })
+
+// var upload = multer({ storage: storage }).single("image")
+
+
+
 module.exports = router;

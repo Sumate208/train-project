@@ -5,12 +5,22 @@
         <div class="columns is-centered">
           <div class="column is-5">
             <form class="box">
+
               <div class="field">
-                <form action="/uploadsingle" enctype="multipart/form-data" method="POST">
-                  Select Image:<input type="file" name="ImgSingle"/>
+                <label for="" class="label">รหัส OTP</label>
+                <div class="control has-icons-left">
+                  <input v-model="otp" type="text" maxlength="6" placeholder="123456" class="input">
+                  <span class="icon is-small is-left">
+                    <i class="fa-solid fa-paper-plane"></i>
+                  </span>
+                </div>
+              </div>
+              <!-- <div class="field">
+                <form action="/upload" enctype="multipart/form-data" method="POST">
+                  Select Image:<input type="file" name="image"/>
                   <input type="submit" value="upload"/>
                 </form>
-              </div>
+              </div> -->
                 <!-- <div class="field">
                     <label class="label">เบอร์โทรศัพท์</label>
                     <div class="control">
@@ -27,15 +37,20 @@
                 </div> -->
 
                 <div class="field">
-                    <button class="button is-success"  @click="submit()">
-                    Sign Up
+                    <button class="button is-success"  @click="cpOtp()">
+                    Sent OTP
                     </button>
                 </div>
                 <div class="field">
+                    <button class="button is-success"  @click="checkOTP()">
+                    check OTP
+                    </button>
+                </div>
+                <!-- <div class="field">
                     <button class="button is-success"  @click="checkState()">
                     check state
                     </button>
-                </div>
+                </div> -->
             </form>
           </div>
         </div>
@@ -69,9 +84,36 @@ export default {
       otp: "",
       otpSending: false,
       firstCount: true,
+      ct:null,
     };
   },
   methods: {
+    cpOtp(){
+      axios
+        .get("http://localhost:3000/genotp")
+        .then((res) => {
+          this.ct = res.data.ctext;
+          console.log('OTP: '+res.data.otp)
+          console.log('hash: '+res.data.ctext)
+        })
+        .catch((err) => {
+          console.log(err.response.data)
+        });
+    },
+    checkOTP(){
+      const data = {
+        otp: this.otp,
+        ct: this.ct
+      }
+      axios
+        .put("http://localhost:3000/checkotp", data)
+        .then((res) => {
+          console.log(res.data.msg)
+        })
+        .catch((err) => {
+          console.log(err.response.data)
+        });
+    },
     checkState(){
       console.log(this.state.link)
     },

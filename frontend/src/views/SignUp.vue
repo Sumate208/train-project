@@ -119,7 +119,7 @@
               <div class="field">
                 <label for="" class="label">รหัส OTP</label>
                 <div class="control has-icons-left">
-                  <input v-model="otp" type="text" maxlength="6" placeholder="123456" class="input">
+                  <input v-model="state.otp" type="text" maxlength="6" placeholder="ตัวอย่าง: 1a3sd8" class="input">
                   <span class="icon is-small is-left">
                     <i class="fa-solid fa-paper-plane"></i>
                   </span>
@@ -137,10 +137,27 @@
       </div>
     </div>
   </section>
+
+  <!-- MODAL -->
+  <div class="modal" :class="{'is-active':modalAlert}">
+    <div class="modal-background"></div>
+    <div class="modal-card">
+      <header class="modal-card-head">
+        <p class="modal-card-title">Alert</p>
+        <button class="delete" aria-label="close" @click="modalAlert = false"></button>
+      </header>
+      <section class="modal-card-body">
+        {{ mAlertText }}
+      </section>
+      <footer class="modal-card-foot">
+        <button class="button" @click="modalAlert = false">OK</button>
+      </footer>
+    </div>
+  </div>
 </template>
 
 <script>
-// import axios from 'axios'
+import axios from 'axios'
 import { reactive } from 'vue';
 import useValidate from '@vuelidate/core'
 import { required,helpers} from '@vuelidate/validators'
@@ -160,24 +177,28 @@ export default {
       id_card:"",
       agency: "",
       mobile: "",
+      otp: ""
     })
     const rules = {
       first_name: {
-        required: helpers.withMessage('*ระบุชื่อจริง', required),
+        required: helpers.withMessage('กรุณากรอกชื่อจริง', required),
       },
       last_name: {
-        required: helpers.withMessage('*ระบุนามสกุล', required),
+        required: helpers.withMessage('*กรุณากรอกนามสกุล', required),
       },
       id_card: {
-        required: helpers.withMessage('*ระบุรหัสบัตรประชาชน', required),
+        required: helpers.withMessage('*กรุณากรอกรหัสบัตรประชาชน', required),
         id_card: helpers.withMessage('*รหัสบัตรประชาชนไม่ถูกต้อง', id_card),
       },
       agency: {
         required: helpers.withMessage('*เลือกหน่วยงาน', required),
       },
       mobile: { 
-        required: helpers.withMessage('*ระบุเบอร์โทรศัพท์', required),
+        required: helpers.withMessage('*กรุณากรอกเบอร์โทรศัพท์', required),
         mobile: helpers.withMessage('*เบอร์โทรศัพท์ไม่ถูกต้อง', mobile)
+      },
+      otp: { 
+        required: helpers.withMessage('*กรุณากรอกรหัส OTP 6 หลัก', required),
       },
     }
     const v$ = useValidate(rules, state)
@@ -185,23 +206,36 @@ export default {
   },
   data() {
     return {
-      otp: "",
       otpSending: false,
       firstCount: true,
+      modalAlert: false,
+      mAlertText:'',
     };
   },
   methods: {
     sentOtp() {
-      // this.$v.$touch();
-      // if (!this.$v.$invalid) {
-
-        var timeleft = 10;
+      if(!this.v$.mobile.$invalid){
+        var timeleft = 59;
         document.getElementById("countdowntimer").textContent = timeleft + "s";
         this.otpSending = true;
-        var downloadTimer = setInterval(() => {
+        const data = {
+          mobile:this.state.mobile
+        }
+        axios
+        .post("http://localhost:3000/sentotp", data)
+        .then((res) => {
+          console.log(res.data)
+          this.mAlertText = res.data.msg;
+          this.modalAlert = true;
+        })
+        .catch((err) => {
+          console.log(err.response.data)
+        });
+
+        var cooldownTimer = setInterval(() => {
           if(timeleft <= 0){
             document.getElementById("countdowntimer").textContent = timeleft + "s";
-            clearInterval(downloadTimer);
+            clearInterval(cooldownTimer);
             this.firstCount = false;
             this.otpSending = false;
           }else{
@@ -209,7 +243,7 @@ export default {
           }
           timeleft -= 1;
         }, 1000);
-      // }
+      }
     },
     submit() {
       // if(!this.v$.$invalid){
