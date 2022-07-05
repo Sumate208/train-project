@@ -157,6 +157,25 @@ router.put('/testapi',(req,res)=>{
 
 // var upload = multer({ storage: storage }).single("image")
 
-
+router.get('/testdate', async (req,res) => {
+    const conn  = await pool.getConnection();
+    try{
+        const result = await conn.execute(`SELECT END_DATE FROM OTP WHERE MOBILE = :v1`,
+                            {v1:'0111111111'},
+                            {outFormat:oracledb.OUT_FORMAT_OBJECT})
+        const time =  new Date().toLocaleString();
+        res.status(200).json({END_DATE:result.rows[0].END_DATE,TIME_NOW:time,CHECK: result.rows[0].END_DATE>time})
+    }catch(err){
+        console.log(err)
+    }finally{
+        if(conn){
+            try{
+                conn.close()
+            }catch(err){
+                console.log(err)
+            }
+        }
+    }
+})
 
 module.exports = router;

@@ -124,7 +124,7 @@ router.post('/sentotp', async (req,res) => {
         }
         /// Run execute
         const exe = await conn.execute(q, {v1:hashotp, v2:mobile}, {autoCommit:true}) 
-        setTimeout(()=>{
+        const $ = setTimeout(()=>{
             try{
                 conn2.execute(`DELETE FROM OTP WHERE MOBILE = :v1`, 
                     {v1:mobile}, {autoCommit:true})
@@ -159,5 +159,6 @@ router.post('/sentotp', async (req,res) => {
         }
     }
 })
+
 
 module.exports = router;
