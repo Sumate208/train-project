@@ -96,40 +96,54 @@ router.post('/signup', async (req, res, next) => {
 
 
 async function hashOTP(otp){
-    const saltRounds = 10;
-    var result = "";
+    var result = '';
     await bcrypt.genSalt(10, (err, salt)=>{
         bcrypt.hash(otp, salt, (err, hash)=>{
             result = hash
         })
     })
-    return result;
+    const saltRounds = 10;
+    const salt = await bcrypt.genSalt(saltRounds);
+    const hash = await bcrypt.hash(otp, salt);
+    return hash;
 }
 
 router.post('/sentotp', async (req,res) => {
     const conn = await pool.getConnection()
-    const otp = generateOTP();
-    var hOtp = hashOTP(otp);
-    // bcrypt.genSalt(10, (err, salt)=>{
-    //     bcrypt.hash(otp, salt, (err, hash)=>{
-    //         hOtp = hash
-    //     })
-    // })
-    // const mobile = req.body.mobile
+    const conn2 = await pool.getConnection()
+    const hashotp = bcrypt.hashSync(generateOTP(), 10);
+    const mobile = req.body.mobile;
     try{
-        console.log(otp)
-        console.log(hOtp)
-        // const result = await conn.execute(`SELECT * FROM OTP`,{},{outFormat:oracledb.OUT_FORMAT_OBJECT})
-        // if(result.rows){
-        //     await conn.execute(`UPDATE OTP SET OTP = :v1 WHERE MOBILE = :v2`,
-        //         {v1:otp, v2:mobile},
-        //         {autoCommit:true})
-        // }else{
-        //     await conn.execute(`INSERT INTO OTP(OTP, MOBILE) VALUES(:v1, :v2)`,
-        //         {v1:otp, v2:mobile},
-        //         {autoCommit:true})
-        // }
-        // res.status(201).json({msg:"OTP ถูกส่งไปยังหมายเลขโทรศัพท์ "+mobile+" แล้ว"})
+        ///เช็คว่าเบอร์ที่จะส่ง OTP มี OTP ที่ทำงานอยู่มั่ย
+        const result = await conn.execute(`SELECT * FROM OTP WHERE MOBILE = :v1`,{v1:mobile},{outFormat:oracledb.OUT_FORMAT_OBJECT})
+        ///ตั้ง Default execute เป็นเพิ่ม otp ลง DB 
+        var q = `INSERT INTO OTP(OTP, MOBILE) VALUES(:v1, :v2)`     
+        ///ถ้ามีเบอร์นี้มี OTP ที่ทำงานอยู่เปลี่ยนเป็น Update table แทน
+        if(result.rows[0]){
+            q = `UPDATE OTP SET OTP = :v1 WHERE MOBILE = :v2`
+        }
+        /// Run execute
+        const exe = await conn.execute(q, {v1:hashotp, v2:mobile}, {autoCommit:true}) 
+        setTimeout(()=>{
+            try{
+                conn2.execute(`DELETE FROM OTP WHERE MOBILE = :v1`, 
+                    {v1:mobile}, {autoCommit:true})
+                console.log('OTP เบอร์ '+mobile+' หมดอายุแล้ว')
+            }catch(err){
+                conn2.rollback
+                console.log(err)
+            }finally{
+                if(conn2){
+                    try{
+                        conn2.close();
+                        console.log('ปิด pool drop OTP แล้ว')
+                    }catch(err){
+                        console.log(err)
+                    }
+                }
+            }
+        }, 20000)
+        res.status(201).json({msg:"OTP ถูกส่งไปยังหมายเลขโทรศัพท์ "+mobile+" แล้ว"})
     }catch(err){
         conn.rollback
         console.log(err)
@@ -138,6 +152,7 @@ router.post('/sentotp', async (req,res) => {
         if(conn){
             try{
                 conn.close();
+                console.log('ปิด pool หลักแล้ว')
             }catch(err){
                 console.log(err)
             }

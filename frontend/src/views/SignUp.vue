@@ -215,7 +215,7 @@ export default {
   methods: {
     sentOtp() {
       if(!this.v$.mobile.$invalid){
-        var timeleft = 59;
+        var timeleft = 5;
         document.getElementById("countdowntimer").textContent = timeleft + "s";
         this.otpSending = true;
         const data = {
