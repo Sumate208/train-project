@@ -158,4 +158,34 @@ router.get('/testdate', async (req,res) => {
     }
 })
 
+router.post('/insert', async(req,res) => {
+    const first_name = req.body.first_name
+    const last_name = req.body.last_name
+    const id_card = req.body.id_card
+    const mobile = req.body.mobile
+    const agency = req.body.agency
+    const conn = await pool.getConnection();
+    try{
+
+        await conn.execute(`INSERT INTO USERS(FIRST_NAME, LAST_NAME, ID_CARD, MOBILE, AGENCY) VALUES(:v1, :v2, :v3, :v4, :v5)`,
+        {v1:first_name, v2:last_name, v3:id_card, v4:mobile, v5:agency}, {autoCommit:true}) 
+        // await conn.execute(
+        //     `INSERT INTO USERS (FIRST_NAME, LAST_NAME, ID_CARD, MOBILE, AGENCY) VALUES(:v1, :v2, :v3, :v4, :v5);`,
+        //     {v1:first_name, v2:last_name, v3:id_card, v4:mobile, v5:agency},
+        //     {autoCommit:true}
+        // )
+        res.status(201).json({msg:"สมัครสมาชิกเรียบ100"})
+    }catch(err){
+        res.status(400).json(err.toString())
+    }finally{
+        if(conn){
+            try{
+                conn.close()
+            }catch(err){
+                console.log(err.toString())
+            }
+        }
+    }
+})
+
 module.exports = router;

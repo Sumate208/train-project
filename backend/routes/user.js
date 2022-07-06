@@ -55,10 +55,13 @@ const signupSchema = Joi.object({
     mobile: Joi.string().required().pattern(/0[0-9]{9}/).external(mobileValidator),  
     id_card: Joi.string().required().pattern(/[0-9]{13}/).external(id_cardValidator),
     agency: Joi.string().required(),
+    otp: Joi.string().required().min(6).max(6),
+})
+const sentOtpSchema = Joi.object({
+    mobile: Joi.string().required().pattern(/0[0-9]{9}/).external(mobileValidator),  
 })
 
 router.post('/signup', async (req, res, next) => {
-    res.status(200)
     try {
         await signupSchema.validateAsync(req.body, { abortEarly: false })
     } catch (err) {
@@ -76,34 +79,42 @@ router.post('/signup', async (req, res, next) => {
     try{
         const hashOTP = await conn.execute(`SELECT OTP FROM OTP WHERE MOBILE = :v1`,{v1:mobile},{outFormat:oracledb.OUT_FORMAT_OBJECT})
         if(hashOTP.rows[0]){
-            const compare = bcrypt.compareSync(hashOTP.rows[0].OTP)
-
+            const compare = bcrypt.compareSync(otp,hashOTP.rows[0].OTP)
+            if(compare){
+                try {
+                    await conn.execute(`INSERT INTO USERS(FIRST_NAME, LAST_NAME, ID_CARD, MOBILE, AGENCY) VALUES(:v1, :v2, :v3, :v4, :v5)`,
+                    {v1:first_name, v2:last_name, v3:id_card, v4:mobile, v5:agency}, {autoCommit:true})
+                    await conn.execute(`DELETE FROM OTP WHERE MOBILE = :v1`,{v1:mobile},{autoCommit:true})
+                    console.log("Successfully sign up: "+first_name)
+                    res.status(201).json({msg:"ลงทะเบียนสำเร็จ"})
+                } catch (err) {
+                    conn.rollback()
+                    res.status(400).json(err.toString());
+                }
+            }else{
+                res.status(400).json({msg:"รหัส OTP ไม่ถูกต้อง"})
+            }
+        }else{
+            res.status(404).json({msg:"เบอร์โทรศัพท์ที่ไม่รู้จัก กรุณากดส่ง OTP อีกครั้ง"})
         }
-    }catch(err){console.log(err)}
-    try {
-        await conn.execute(
-            `INSERT INTO USERS (FIRST_NAME,LAST_NAME,ID_CARD,MOBILE,AGENCY) VALUES(:v1, :v2, :v3, :v4, :v5);`,
-            {   
-                v1:first_name,
-                v2:last_name,
-                v3:id_card,
-                v4:mobile,
-                v5:agency,
-            },{autoCommit:true}
-        );
-        console.log("Successfully sign up: "+first_name)
-        res.status(201).json({msg:"ลงทะเบียนสำเร็จ"})
-    } catch (err) {
-        conn.rollback()
-        res.status(400).json(err.toString());
-    } finally {
-        conn.close();
+    }catch(err){
+        console.log(err)
+    }finally{
+        if(conn){
+            try{
+                conn.close();
+                console.log('close Connection')
+            }catch(err){
+                console.log(err)
+            }
+        }
     }
 })
+
 function gettime(){
     const timeNow =  new Date().toLocaleString();
     var timeEnd =  new Date();
-    timeEnd.setMinutes(timeEnd.getMinutes() + 1);
+    timeEnd.setMinutes(timeEnd.getMinutes() + 15);
     timeEnd = timeEnd.toLocaleString();
     return {timeNow:timeNow,timeEnd:timeEnd}
 }
@@ -111,7 +122,7 @@ function gettime(){
 // แบบ2
 async function autoDeleteOtp(mobile){
     const conn = await pool.getConnection();
-    var recursivecooldown = 65000;
+    var recursivecooldown = 905000;
 
     const deleteOTP = async() =>{
         const result = await conn.execute(`SELECT END_DATE FROM OTP WHERE MOBILE = :v1`,
@@ -190,6 +201,11 @@ async function autoDeleteOtp(mobile){
 //         }
 // }
 router.post('/sentotp', async (req,res) => {
+    try {
+        await sentOtpSchema.validateAsync(req.body, { abortEarly: false })
+    } catch (err) {
+        return res.status(400).send(err)
+    }
     const conn = await pool.getConnection()
     const otp = generateOTP()
     const hashotp = bcrypt.hashSync(otp, 10);
