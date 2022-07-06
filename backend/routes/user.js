@@ -67,21 +67,28 @@ router.post('/signup', async (req, res, next) => {
 
     const conn = await pool.getConnection();
 
-    const first_name = req.body.first_name
-    const last_name = req.body.last_name
-    const id_card = req.body.id_card
-    const agency = req.body.agency
-    const mobile = req.body.mobile
+    const first_name = req.body.first_name;
+    const last_name = req.body.last_name;
+    const id_card = req.body.id_card;
+    const agency = req.body.agency;
+    const mobile = req.body.mobile;
+    const otp = req.body.otp;
+    try{
+        const hashOTP = await conn.execute(`SELECT OTP FROM OTP WHERE MOBILE = :v1`,{v1:mobile},{outFormat:oracledb.OUT_FORMAT_OBJECT})
+        if(hashOTP.rows[0]){
+            const compare = bcrypt.compareSync(hashOTP.rows[0].OTP)
 
+        }
+    }catch(err){console.log(err)}
     try {
         await conn.execute(
-            "INSERT INTO USERS (USER_ID,first_name,last_name,id_card,mobile,agency) VALUES(:USERID_SEQ.nextval,:fname, :lname, :id, :mobile, :agency);",
+            `INSERT INTO USERS (FIRST_NAME,LAST_NAME,ID_CARD,MOBILE,AGENCY) VALUES(:v1, :v2, :v3, :v4, :v5);`,
             {   
-                fname:{val:first_name},
-                lname:{val:last_name},
-                id:{val:id_card},
-                mobile:{val:mobile},
-                agency:{val:agency},
+                v1:first_name,
+                v2:last_name,
+                v3:id_card,
+                v4:mobile,
+                v5:agency,
             },{autoCommit:true}
         );
         console.log("Successfully sign up: "+first_name)
@@ -101,39 +108,91 @@ function gettime(){
     return {timeNow:timeNow,timeEnd:timeEnd}
 }
 
+// แบบ2
 async function autoDeleteOtp(mobile){
-        const conn = await pool.getConnection()
+    const conn = await pool.getConnection();
+    var recursivecooldown = 65000;
+
+    const deleteOTP = async() =>{
         const result = await conn.execute(`SELECT END_DATE FROM OTP WHERE MOBILE = :v1`,
         {v1:mobile},
         {outFormat:oracledb.OUT_FORMAT_OBJECT})
         const time = gettime()
-        if(time.timeNow > result.rows[0].END_DATE){
-            try{
-                await conn.execute(`DELETE FROM OTP WHERE MOBILE = :v1`, 
+        if(result.rows[0]){
+            if(time.timeNow > result.rows[0].END_DATE){
+                try{
+                    await conn.execute(`DELETE FROM OTP WHERE MOBILE = :v1`, 
                     {v1:mobile}, {autoCommit:true})
-                console.log('OTP เบอร์ '+mobile+' หมดอายุแล้ว')
-                return
-            }catch(err){
-                conn.rollback
-                console.log(err)
-            }
-        }else{
-            console.log("มีการส่ง OTP เบอร์ "+mobile+" ใหม่ OTP ปัจจุบันยังไม่หมดอายุ")
-            const recursivecooldown = Date.parse(result.rows[0].END_DATE) - Date.parse(time.timeNow) +5000
-            
-            setTimeout(()=>autoDeleteOtp(mobile), recursivecooldown)
-        }
+                    console.log('OTP เบอร์ '+mobile+' หมดอายุแล้ว')
+                    if(conn){
+                        try{
+                            conn.close();
+                            console.log('ปิด pool Delete OTP แล้ว')
+                        }catch(err){
+                            console.log(err)
+                        }
+                    }
+                    clearTimeout(callTimeout)
+                }catch(err){
+                    conn.rollback
+                    console.log(err)
+                }
+            }else{
+                console.log("มีการส่ง OTP เบอร์ "+mobile+" ใหม่ OTP ปัจจุบันยังไม่หมดอายุ")
+                recursivecooldown = Date.parse(result.rows[0].END_DATE) - Date.parse(time.timeNow) +5000
+                console.log(recursivecooldown)
+                callTimeout();  
+            } 
+        }else{}
+    }
+    const callTimeout = () => {setTimeout(deleteOTP,recursivecooldown)}
 
-        try{
-            conn.close();
-            console.log("ปิด pool drop OTP แล้ว")
-        }catch(err){
-            console.log(err)
-        }
+    try{
+        callTimeout()
+        console.log('เรียก timeout')
+    }
+    catch(err){
+        console.log(err)
+
+    }
 }
+
+// แบบ 1
+// async function autoDeleteOtp(mobile){
+//         const conn = await pool.getConnection()
+//         const result = await conn.execute(`SELECT END_DATE FROM OTP WHERE MOBILE = :v1`,
+//         {v1:mobile},
+//         {outFormat:oracledb.OUT_FORMAT_OBJECT})
+//         const time = gettime()
+//         if(result.rows[0]){
+//             if(time.timeNow > result.rows[0].END_DATE){
+//                 try{
+//                     conn.execute(`DELETE FROM OTP WHERE MOBILE = :v1`, 
+//                         {v1:mobile}, {autoCommit:true})
+//                     console.log('OTP เบอร์ '+mobile+' หมดอายุแล้ว')
+//                 }catch(err){
+//                     conn.rollback
+//                     console.log(err)
+//                 }
+//             }else{
+//                 console.log("มีการส่ง OTP เบอร์ "+mobile+" ใหม่ OTP ปัจจุบันยังไม่หมดอายุ")
+//                 console.log(Date.parse(result.rows[0].END_DATE) - Date.parse(time.timeNow))
+//                 const recursivecooldown = Date.parse(result.rows[0].END_DATE) - Date.parse(time.timeNow) +5000;
+//                 console.log(recursivecooldown)
+//                 setTimeout(()=>autoDeleteOtp(mobile), recursivecooldown)
+//             }
+//         }
+//         try{
+//             conn.close();
+//             console.log("ปิด pool drop OTP แล้ว")
+//         }catch(err){
+//             console.log(err)
+//         }
+// }
 router.post('/sentotp', async (req,res) => {
     const conn = await pool.getConnection()
-    const hashotp = bcrypt.hashSync(generateOTP(), 10);
+    const otp = generateOTP()
+    const hashotp = bcrypt.hashSync(otp, 10);
     const mobile = req.body.mobile;
     const time = gettime();
     try{
@@ -147,9 +206,16 @@ router.post('/sentotp', async (req,res) => {
         }
         /// Run execute
         await conn.execute(q, {v1:hashotp, v2:mobile, v3:time.timeNow, v4:time.timeEnd}, {autoCommit:true}) 
+        /// external api mailbit
+        console.log(otp)
         res.status(201).json({msg:"OTP ถูกส่งไปยังหมายเลขโทรศัพท์ "+mobile+" แล้ว"})
+        
         /// ตั้งเวลาหมดอายุ OTP
-        setTimeout(()=>autoDeleteOtp(mobile), 65000)
+        // แบบ1
+        // setTimeout(()=>autoDeleteOtp(mobile), 65000)
+        // แบบ2
+        autoDeleteOtp(mobile);
+
     }catch(err){
         conn.rollback
         console.log(err)
@@ -166,5 +232,13 @@ router.post('/sentotp', async (req,res) => {
     }
 })
 
+router.get('/break',(req,res) => {
+    try{
+        clearTimeout(callTimeout);
+        res.status(200).json({msg: "TimeOut breaked"})
+    }catch(err){
+        res.status(400).json({msg: err})
+    }
+})
 
 module.exports = router;

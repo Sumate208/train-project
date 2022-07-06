@@ -3,7 +3,7 @@ const config = require("../config");
 const oracledb = require("oracledb");
 const multer = require('multer')
 const path = require('path')
-const bcrypt = require('bcrypt')
+const bcrypt = require('bcrypt');
 
 let pool;
 const cPool = async() =>{
@@ -35,10 +35,14 @@ router.get('/genotp',(req,res)=>{
 router.put('/checkotp',(req,res)=>{
     const otp = req.body.otp
     const ct = req.body.ct
-    bcrypt.compare(otp, ct, (err, result) => {
-        if(result)(res.status(201).json({msg:"OTP ถูกต้อง"}))
-        else{res.status(400).json({msg:"OTP ไม่ถูกต้อง"})}
-    })
+    // bcrypt.compare(otp, ct, (err, result) => {
+    //     if(result)(res.status(201).json(result))
+    //     else{res.status(400).json({msg:"OTP ไม่ถูกต้อง"})}
+    // })
+    const compareOTP = bcrypt.compareSync(otp, ct)
+    console.log(compareOTP)
+    if(compareOTP)(res.status(201).json({msg:"OTP ถูกต้อง"}))
+    else{res.status(400).json({msg:"OTP ไม่ถูกต้อง"})}
 })
 
 router.put('/testapi',(req,res)=>{
@@ -56,6 +60,45 @@ router.put('/testapi',(req,res)=>{
         res.status(200).json({link:link,otp:otp})
     }catch(err){
         res.status(400).json(err.toString());
+    }
+})
+
+var count = 1;
+function testtime(){
+    if(num == 4){
+        console.log("Clear");
+        clearTimeout(timeout);
+    }else{
+        console.log('hello: ' + count);
+        count++;
+        timeout();
+    }
+
+
+}
+
+var timeout = () => {setTimeout(testtime(),5000)}
+
+router.get('/testtimeout',(req,res)=>{
+    var count = 1;
+    const testtime = ()=>{
+        if(count == 4){
+            console.log("Clear");
+            clearTimeout(timeout);
+        }else{
+            console.log('hello: ' + count);
+            count++;
+            timeout();
+        }
+    }
+    const timeout = () => {setTimeout(testtime,5000)}
+
+    try{
+        timeout()
+        res.status(200)
+    }
+    catch(err){
+        res.status(400).json(err)
     }
 })
 

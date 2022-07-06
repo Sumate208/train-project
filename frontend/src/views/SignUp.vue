@@ -246,25 +246,25 @@ export default {
       }
     },
     submit() {
-      // if(!this.v$.$invalid){
-      //  const data = {
-      //     first_name: this.first_name,
-      //     last_name: this.last_name,
-      //     id_card: this.id_card,
-      //     agency: this.agency,
-      //     mobile: this.mobile,
-
-      //   };
-      //   axios
-      //     .post("http://localhost:3000/signup", data)
-      //     .then((res) => {
-      //       alert(res.data.msg);
-      //       this.$router.push({path: '/signin'})
-      //     })
-      //     .catch((err) => {
-      //       alert(err.response.data.details.message)
-      //     }); 
-      // }
+      if(!this.v$.$invalid){
+       const data = {
+          first_name: this.state.first_name,
+          last_name: this.state.last_name,
+          id_card: this.state.id_card,
+          agency: this.state.agency,
+          mobile: this.state.mobile,
+          otp: this.state.otp,
+        };
+        axios
+          .post("http://localhost:3000/signup", data)
+          .then((res) => {
+            alert(res.data.msg);
+            this.$router.push({path: '/signin'})
+          })
+          .catch((err) => {
+            alert(err.response.data.details.message)
+          }); 
+      }
       console.log(this.first_name)
     },
   },
