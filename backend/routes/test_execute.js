@@ -12,78 +12,6 @@ const cPool = async() =>{
 cPool();
 
 router = express.Router();
-// test connect to DB
-router.get('/get_demo', async (req,res) => {
-    const conn = await pool.getConnection()
-    try{
-        const result = await conn.execute("SELECT * FROM TABLE_DEMO",{},{outFormat: oracledb.OBJECT})
-        console.log(result.rows)
-        res.status(201).json(result.rows)
-    }catch(err){
-        console.log(err)
-    }finally{
-        if(conn){
-            try{conn.close();}
-            catch(err){console.log(err);}
-        }
-    }
-})
-
-router.post('/insert_demo',async(req,res) => {
-    const conn = await pool.getConnection()
-    try{
-        await conn.execute(`INSERT INTO TABLE_DEMO (COL1) VALUES(:col1)`,
-        {col1:req.body.col1},{autoCommit:true})
-        res.status(201).json({msg:"Successfully insert"})
-    }catch(err){
-        console.log(err)
-        res.status(400).json(err.toString());
-    }finally{
-        if(conn){
-            try{conn.close();}
-            catch(err){console.log(err);}
-        }
-    }
-})
-
-router.post('/NM_TABLE',async(req,res) => {
-    const conn = await pool.getConnection()
-    try{
-        await conn.execute(
-            `INSERT INTO NM_TABLE VALUES(:v1, :v2)`,
-            {v1:req.body.id, v2:req.body.discript},
-            {autoCommit:true,}
-        )
-        res.status(201).json({msg:"Successfully insert"})
-    }catch(err){
-        console.log(err)
-        res.status(400).json(err.toString());
-    }finally{
-        if(conn){
-            try{conn.close();}
-            catch(err){console.log(err);}
-        }
-    }
-})
-
-router.get('/NM_TABLE', async(req,res) => {
-    const conn = await pool.getConnection()
-    try{
-        const result = await conn.execute(
-            `SELECT * FROM NM_TABLE WHERE ID = :v1`,
-            [req.body.id],{outFormat: oracledb.OUT_FORMAT_OBJECT}
-        )
-        res.status(201).json(result.rows)
-    }catch(err){
-        console.log(err)
-        res.status(400).json(err.toString());
-    }finally{
-        if(conn){
-            try{conn.close();}
-            catch(err){console.log(err);}
-        }
-    }
-})
 
 /////// gen OTP
 function generateOTP () {
@@ -160,11 +88,20 @@ router.put('/testapi',(req,res)=>{
 router.get('/testdate', async (req,res) => {
     const conn  = await pool.getConnection();
     try{
-        const result = await conn.execute(`SELECT END_DATE FROM OTP WHERE MOBILE = :v1`,
-                            {v1:'0111111111'},
-                            {outFormat:oracledb.OUT_FORMAT_OBJECT})
-        const time =  new Date().toLocaleString();
-        res.status(200).json({END_DATE:result.rows[0].END_DATE,TIME_NOW:time,CHECK: result.rows[0].END_DATE>time})
+        // const result = await conn.execute(`SELECT END_DATE FROM OTP WHERE MOBILE = :v1`,
+        //                     {v1:'0111111111'},
+        //                     {outFormat:oracledb.OUT_FORMAT_OBJECT})
+        // const timeNow =  new Date();
+        // var timeEnd =  new Date();
+        // timeEnd.setMinutes(timeEnd.getMinutes() + 15);
+        // timeEnd = timeEnd.toLocaleString();
+        const timeNow =  new Date().toLocaleString();
+        var timeEnd =  new Date();
+        timeEnd.setMinutes(timeEnd.getMinutes() + 10);
+        timeEnd = timeEnd.toLocaleString();
+        const diff = Date.parse(timeEnd)-Date.parse(timeNow)
+
+        res.status(200).json({TIME_NOW:timeNow,TIME_END:timeEnd,CHECK:diff})
     }catch(err){
         console.log(err)
     }finally{
