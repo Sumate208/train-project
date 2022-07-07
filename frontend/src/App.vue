@@ -54,7 +54,9 @@
     <router-view :key="$route.fullPath" @auth-change="onAuthChange" />
   </div>
 </template>
+
 <script>
+import axios from '@/plugins/axios'
 export default {
   data () {
     return {
@@ -64,12 +66,23 @@ export default {
     }
   },
   mounted () {
-   
+   this.onAuthChange()
   },
   methods: {
+    onAuthChange(){
+      const token = localStorage.getItem('ts-token')
+      if(token){
+        this.getUser()
+      }
+    },
+    getUser(){
+      axios.get('user').then(res=>{
+        this.user = res.data
+      })
+    },
     logOut(){
-      this.user='';
-      this.navMobile=false;
+      localStorage.removeItem('ts-token')
+      this.user = null;
       this.$router.push({path: '/signin'});
     },
     

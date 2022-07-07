@@ -172,10 +172,10 @@ const id_card = (value) => {
 export default {
   setup () {
     const state = reactive({
-      first_name: "",
-      last_name: "",
+      first_name: "TestAPI",
+      last_name: "FromFrontend",
       id_card:"",
-      agency: "",
+      agency: "ศูนย์เทคโนโลยีสารสนเทศและการสื่อสาร",
       mobile: "",
       otp: ""
     })
@@ -209,14 +209,30 @@ export default {
       otpSending: false,
       firstCount: true,
       modalAlert: false,
-      mAlertText:'',
+      mAlertText: "",
+      intervalid1: null,
     };
   },
   methods: {
+    cooldownTimer(){
+      var timeleft = 60;
+      this.intervalid1 = setInterval(() => {
+        if(timeleft <= 0){
+          document.getElementById("countdowntimer").textContent = timeleft + "s";
+          clearInterval(this.intervalid1);
+          this.firstCount = false;
+          this.otpSending = false;
+        }else{
+          document.getElementById("countdowntimer").textContent = timeleft + "s";
+        }
+        console.log(timeleft)
+        timeleft -= 1;
+      }, 1000);
+    },
     sentOtp() {
       if(!this.v$.mobile.$invalid){
-        var timeleft = 5;
-        document.getElementById("countdowntimer").textContent = timeleft + "s";
+        document.getElementById("countdowntimer").textContent = 60 + "s";
+        this.cooldownTimer()
         this.otpSending = true;
         const data = {
           mobile:this.state.mobile
@@ -229,22 +245,28 @@ export default {
           this.modalAlert = true;
         })
         .catch((err) => {
+          this.mAlertText = err.response.data;
+          this.modalAlert = true;
+          clearInterval(this.intervalid1)
+          this.firstCount = false;
+          this.otpSending = false;
           console.log(err.response.data)
         });
 
-        var cooldownTimer = setInterval(() => {
-          if(timeleft <= 0){
-            document.getElementById("countdowntimer").textContent = timeleft + "s";
-            clearInterval(cooldownTimer);
-            this.firstCount = false;
-            this.otpSending = false;
-          }else{
-            document.getElementById("countdowntimer").textContent = timeleft + "s";
-          }
-          timeleft -= 1;
-        }, 1000);
+        // var cooldownTimer = setInterval(() => {
+        //   if(timeleft <= 0){
+        //     document.getElementById("countdowntimer").textContent = timeleft + "s";
+        //     clearInterval(cooldownTimer);
+        //     this.firstCount = false;
+        //     this.otpSending = false;
+        //   }else{
+        //     document.getElementById("countdowntimer").textContent = timeleft + "s";
+        //   }
+        //   timeleft -= 1;
+        // }, 1000);
       }
     },
+    
     submit() {
       if(!this.v$.$invalid){
        const data = {
@@ -258,14 +280,16 @@ export default {
         axios
           .post("http://localhost:3000/signup", data)
           .then((res) => {
+            clearInterval(this.intervalid1)
             alert(res.data.msg);
             this.$router.push({path: '/signin'})
           })
           .catch((err) => {
-            alert(err.response.data.details.message)
+            console.log(err.response.data.msg);
+            this.mAlertText = err.response.data.msg;
+            this.modalAlert = true;
           }); 
       }
-      console.log(this.first_name)
     },
   },
 };

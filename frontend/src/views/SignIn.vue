@@ -8,7 +8,7 @@
               <div class="field">
                 <label class="label">Username</label>
                 <div class="control has-icons-left">
-                  <input type="text" placeholder="Username" class="input">
+                  <input type="text" v-model="state.username" placeholder="Username" class="input">
                   <span class="icon is-small is-left">
                     <i class="fa-solid fa-user"></i>
                   </span>
@@ -18,13 +18,16 @@
               <div class="field">
                 <label class="label">Password</label>
                 <div class="control has-icons-left has-icon-right">
-                  <input :type="[showPass ? 'text' : 'password']" placeholder="Password" class="input">
+                  <input :type="[showPass ? 'text' : 'password']" v-model="state.password" placeholder="Password" class="input">
                   <span class="icon is-small is-left">
                     <i class="fa-solid fa-lock"></i>
                   </span>
                   <button id="sPassBut" class="button is-right" @click="showPass = !showPass" :disabled="otpSending">
-                    <span v-show="!showPass" class="icon is-small">
-                        <i class="fa-solid"  :class="[showPass ? 'fa-eye-slash' : 'fa-eye']"></i>
+                    <span v-if="!showPass" class="icon is-small">
+                        <i class="fa-solid fa-eye"></i>
+                    </span>
+                    <span v-if="showPass" class="icon is-small">
+                        <i class="fa-solid fa-eye-slash"></i>
                     </span>
                   </button>
                   
@@ -39,7 +42,7 @@
                   </label>
               </div>
               <div class="field">
-                <button class="button is-success">
+                <button @click="submit()" class="button is-success">
                   Login
                 </button>
               </div>
@@ -52,22 +55,33 @@
 </template>
 
 <script>
-import {
-  required,
-  helpers,
-} from "vuelidate/lib/validators";
-
-function mobile(value) {
-  return !helpers.req(value) || !!value.match(/0[0-9]{9}/);
-}
+import axios from 'axios'
+import { reactive } from 'vue';
+import useValidate from '@vuelidate/core'
+import { required,helpers} from '@vuelidate/validators'
 
 export default {
+  setup () {
+    const state = reactive({
+      username:"",
+      password: "",
+    })
+    const rules = {
+      username: {
+        required: helpers.withMessage('*กรุณากรอก Username', required),
+      },
+      password: { 
+        required: helpers.withMessage('*กรุณากรอก Password', required),
+      },
+    }
+    const v$ = useValidate(rules, state)
+    return { state, v$ }
+  },
   data() {
     return {
-      user: null,
-      password: null,
       remember:false,
       showPass: false,
+      error:"",
     };
   },
   mounted () {
@@ -79,24 +93,6 @@ export default {
         const rememLs = localStorage.getItem("remember");
         if(rememLs)this.user = rememLs
     },
-    sentOtp() {
-        
-        var timeleft = 10;
-        document.getElementById("countdowntimer").textContent = timeleft + "s";
-        this.otpSending = true;
-        var downloadTimer = setInterval(() => {
-          if(timeleft <= 0){
-            document.getElementById("countdowntimer").textContent = timeleft + "s";
-            clearInterval(downloadTimer);
-            this.firstCount = false;
-            this.otpSending = false;
-          }else{
-            document.getElementById("countdowntimer").textContent = timeleft + "s";
-          }
-          timeleft -= 1;
-        }, 1000);
-      
-    },
     submit() {
         if(this.remember){
             localStorage.setItem("username", this.user_number)
@@ -104,13 +100,21 @@ export default {
         if(localStorage.getItem("username") && !this.remember){
             localStorage.removeItem("username")
         }
-        alert("login ")
-    },
-  },
-  validations: {
-    mobile: {
-      required: required,
-      mobile: mobile,
+        const data = {
+          username: this.state.username,
+          password: this.state.password,
+        }
+        axios.post("http://localhost:3000/signin", data)
+        .then(res => {
+          const token = res.data.token;
+          localStorage.setItem('ts-token', token);
+          this.$emit('auth-change')
+          this.$router.push({path: '/'})
+        })
+        .catch(err => {
+          // this.error = err.res.data;
+          console.log(err.response.data)
+        })
     },
   },
 };
@@ -125,7 +129,9 @@ export default {
   #sPassBut {
     position: absolute;
     right: 0;
-    border: 0px;
+    border: hidden;
+    outline: none;
+    box-shadow: none;
     margin: 2px;
     width: 35px;
     height: 35px
