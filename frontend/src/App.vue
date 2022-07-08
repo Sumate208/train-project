@@ -23,7 +23,19 @@
 
       <div class="navbar-menu" :class="{'is-active': navMobile}" id="navbarBasicExample">
         <div class="navbar-end">
-          <div v-if="user" class="navbar-item">
+          <div v-if="user" class="navbar-item has-dropdown is-hoverable">
+            <a class="navbar-link">
+              <figure class="image is-24x24 my-auto">
+                <img class="is-rounded" src="https://bulma.io/images/placeholders/128x128.png">
+              </figure>
+              <span class="pl-3">{{ user.FIRST_NAME }} {{ user.LAST_NAME }}</span>
+            </a>
+            <div class="navbar-dropdown">
+              <a class="navbar-item" @click="$router.push('/profile')">Profile</a>
+              <a class="navbar-item" @click="logOut()">Log out</a>
+            </div>
+          </div>
+          <!-- <div v-if="user" class="navbar-item">
             <div class="navbar-item">
               <figure class="image is-24x24 my-auto">
                 <img class="is-rounded" src="https://bulma.io/images/placeholders/128x128.png">
@@ -35,7 +47,7 @@
             <a class="nav-item is-tab" @click="logOut()">
               <span class="icon"><i class="fa fa-sign-out"></i></span>
             </a>
-          </div>
+          </div> -->
 
           <div v-if="!user" class="navbar-item">
             <a class="button is-light" @click="$router.push('/signin')">

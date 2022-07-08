@@ -34,7 +34,7 @@ export default {
   },
   methods: {
     isLogin () {
-      const token = localStorage.getItem('token')
+      const token = localStorage.getItem('ts-token')
       if (!token) {
         this.$router.push({path: '/signin'})
       }
