@@ -123,9 +123,6 @@ export default {
         }
         axios.post("http://localhost:3000/signin", data)
         .then(res => {
-          
-          this.mAlertText = "เข้าสู่ระบบ";
-          this.modalAlert = true;
           if(this.remember){
             localStorage.setItem("username", this.state.username)
           }
@@ -134,7 +131,7 @@ export default {
           }
           const token = res.data.token;
           localStorage.setItem('ts-token', token);
-          this.$emit('auth-change', "Hello");
+          this.$emit('auth-change');
           this.$router.push({path: '/'});
         })
         .catch(err => {

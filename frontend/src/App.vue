@@ -80,7 +80,7 @@ export default {
     getUser(){
       axios.get('/user').then(res=>{
         this.user = res.data
-        console.log(err.response.data)
+        console.log(res.data)
 
       }).catch(err => {
         console.log(err.response.data)

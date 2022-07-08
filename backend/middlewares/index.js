@@ -1,10 +1,5 @@
 const config = require("../config");
 const oracledb = require("oracledb");
-var pool;
-const cPool = async() =>{
-    pool = await oracledb.createPool(config);
-}
-cPool();
 
 async function logger (req, res, next) {
     const timestamp = new Date().toISOString().substring(0, 19)
@@ -13,7 +8,7 @@ async function logger (req, res, next) {
 }
 
 async function isLoggedIn (req, res, next) {
-    const conn = await pool.getConnection();
+    const conn = await oracledb.getConnection(config);
     let authorization = req.headers.authorization
     
     if (!authorization) {
@@ -33,7 +28,7 @@ async function isLoggedIn (req, res, next) {
     }
     
     // Set user
-    const users = await conn.execute(`SELECT * FROM USERS WHERE USER_ID = :v1`, 
+    const users = await conn.execute(`SELECT FIRST_NAME, LAST_NAME, MOBILE FROM USERS WHERE USER_ID = :v1`, 
         {v1:token.USER_ID},{outFormat:oracledb.OUT_FORMAT_OBJECT}
     )
     req.user = users.rows[0]

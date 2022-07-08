@@ -69,22 +69,25 @@ function gettime(){
 async function autoDeleteOtp(mobile){
     const conn = await pool.getConnection();
     var recursivecooldown = 905000;
-
+    /// ประกาศ Function ลบ OTP ไว้ ***ยังไม่Run
     const deleteOTP = async() =>{
+        /// Query เวลาหมดอายุ OTP ตาม mobile เพื่อเช็คว่าหมดอายุหรือยัง เปลี่ยนเวลาหมดอายุหรือไม่
         const result = await conn.execute(`SELECT END_DATE FROM OTP WHERE MOBILE = :v1`,
         {v1:mobile},
         {outFormat:oracledb.OUT_FORMAT_OBJECT})
         const time = gettime()
+        /// เช็คว่า มี OTP มั้ย
         if(result.rows[0]){
+            /// เช็คว่าหมดอายุหรือยัง
             if(time.timeNow > result.rows[0].END_DATE){
                 try{
+                    /// ลบ OTP หากหมดอายุแล้ว
                     await conn.execute(`DELETE FROM OTP WHERE MOBILE = :v1`, 
                     {v1:mobile}, {autoCommit:true})
                     console.log('OTP เบอร์ '+mobile+' หมดอายุแล้ว')
                     if(conn){
                         try{
                             conn.close();
-                            console.log('ปิด pool Delete OTP แล้ว')
                         }catch(err){
                             console.log(err.toString())
                         }
@@ -94,7 +97,9 @@ async function autoDeleteOtp(mobile){
                     conn.rollback
                     console.log(err.toString())
                 }
-            }else{
+            }
+            /// ถ้ายังไม่หมดอายุ console.log แล้วเรียก Timeout เตรียมลบใหม่ตามอายุที่เหลืออยู่
+            else{
                 console.log("มีการส่ง OTP เบอร์ "+mobile+" ใหม่ OTP ปัจจุบันยังไม่หมดอายุ")
                 recursivecooldown = Date.parse(result.rows[0].END_DATE) - Date.parse(time.timeNow) +5000
                 console.log(recursivecooldown)
@@ -102,11 +107,11 @@ async function autoDeleteOtp(mobile){
             } 
         }else{}
     }
+    /// ประกาศ setTimeout เป็นตัวแปลไว้หยุดเมื่อใช้ OTP สมัครสมาชิคสำเร็จ
     const callTimeout = () => {setTimeout(deleteOTP,recursivecooldown)}
 
     try{
         callTimeout()
-        console.log('เรียก timeout')
     }
     catch(err){
         console.log(err.toString())
@@ -117,12 +122,14 @@ async function autoDeleteOtp(mobile){
 /// สร้าง และ ส่ง OTP
 router.post('/sentotp', async (req,res) => {
     try {
+        /// validate ข้อมูลที่ใช้ส่ง OTP(ตาม Line:54)
         await sentOtpSchema.validateAsync(req.body, { abortEarly: false })
     } catch (err) {
         return res.status(400).send(err.toString())
     }
     const conn = await pool.getConnection()
     const otp = generateOTP()
+    /// Hash OTP
     const hashotp = bcrypt.hashSync(otp, 10);
     const mobile = req.body.mobile;
     const time = gettime();
@@ -138,24 +145,20 @@ router.post('/sentotp', async (req,res) => {
         /// Run execute
         await conn.execute(q, {v1:hashotp, v2:mobile, v3:time.timeNow, v4:time.timeEnd}, {autoCommit:true}) 
         /// external api mailbit
-
         console.log(otp)
+        
         res.status(201).json({msg:"OTP ถูกส่งไปยังหมายเลขโทรศัพท์ "+mobile+" แล้ว"})
 
-        // แบบ1
-        // setTimeout(()=>autoDeleteOtp(mobile), 65000)
-        // แบบ2
         autoDeleteOtp(mobile);
 
     }catch(err){
         conn.rollback
         console.log(err.toString())
-        res.status(400).json({msg:err.toString()})
+        res.status(400).json(err.toString())
     }finally{
         if(conn){
             try{
                 conn.close();
-                console.log('ปิด pool หลักแล้ว')
             }catch(err){
                 console.log(err.toString())
             }
@@ -176,6 +179,7 @@ const signupSchema = Joi.object({
 /// API SingUp
 router.post('/signup', async (req, res, next) => {
     try {
+        /// validate ข้อมูลที่ใช้ SignUp (ตาม Line:169)
         await signupSchema.validateAsync(req.body, { abortEarly: false })
     } catch (err) {
         return res.status(400).send(err.toString())
@@ -190,13 +194,19 @@ router.post('/signup', async (req, res, next) => {
     const mobile = req.body.mobile;
     const otp = req.body.otp;
     try{
+        /// Query HashOTP ตาม MOBILE จาก DB เตรียม Compare
         const hashOTP = await conn.execute(`SELECT OTP FROM OTP WHERE MOBILE = :v1`,{v1:mobile},{outFormat:oracledb.OUT_FORMAT_OBJECT})
+        /// เช็คว่า MOBILE นี้มี OTP ที่ทำงานอยู่มั้ย
         if(hashOTP.rows[0]){
+            /// Compare OTP ใน DB กับ OTP ที่ USER กรอบเข้ามา
             const compare = bcrypt.compareSync(otp,hashOTP.rows[0].OTP)
+            /// เช็คว่า USER ใส่ OTP ถูกมั้ย
             if(compare){
                 try {
-                    await conn.execute(`INSERT INTO USERS(FIRST_NAME, LAST_NAME, ID_CARD, MOBILE, AGENCY) VALUES(:v1, :v2, :v3, :v4, :v5)`,
-                    {v1:first_name, v2:last_name, v3:id_card, v4:mobile, v5:agency}, {autoCommit:true})
+                    /// INSERT ข้อมูลของ USER ลง DB
+                    await conn.execute(`INSERT INTO USERS(FIRST_NAME, LAST_NAME, ID_CARD, MOBILE, AGENCY, PASSWORD) VALUES(:v1, :v2, :v3, :v4, :v5, :v6)`,
+                    {v1:first_name, v2:last_name, v3:id_card, v4:mobile, v5:agency, v6:mobile}, {autoCommit:true})
+                    /// DELETE OTP ใน DB
                     await conn.execute(`DELETE FROM OTP WHERE MOBILE = :v1`,{v1:mobile},{autoCommit:true})
                     console.log("Successfully sign up: "+first_name)
                     res.status(201).json({msg:"ลงทะเบียนสำเร็จ"})
@@ -216,7 +226,6 @@ router.post('/signup', async (req, res, next) => {
         if(conn){
             try{
                 conn.close();
-                console.log('close Connection')
             }catch(err){
                 console.log(err.toString())
             }
@@ -225,7 +234,7 @@ router.post('/signup', async (req, res, next) => {
 })
 
 
-/// validate ข้อมูลที่ใช้ SingUp
+/// validate ข้อมูลที่ใช้ SingIn
 const loginSchema = Joi.object({
     username: Joi.string().required(),
     password: Joi.string().required(),
@@ -234,24 +243,27 @@ const loginSchema = Joi.object({
 /// login
 router.post('/signin',async (req,res) => {
     try{
+        /// validate ข้อมูลที่ใช้ SignIn(ตาม Line:237)
         await loginSchema.validateAsync(req.body, { abortEarly: false })
     }catch(err){
         return res.status(400).send(err.toString())
     }
-    const id_card = req.body.username;
-    const mobile = req.body.password;
+    const username = req.body.username;
+    const password = req.body.password;
     const conn = await pool.getConnection();
     try{
+        /// Query Username(ข้อมูล ID_CARD) ใน DB เพื่อเช็คว่า USER กรอก Username ที่มีอยู่จริงมั้ย
         const users = await conn.execute(`SELECT * FROM USERS WHERE ID_CARD = :v1`,
-        {v1:id_card},{outFormat:oracledb.OUT_FORMAT_OBJECT})
+        {v1:username},{outFormat:oracledb.OUT_FORMAT_OBJECT})
         const user = users.rows[0];
+        /// เช็คว่าที่ Query มี Username มั้ย
         if(!user){
-            throw new Error('username หรือ password ไม่ถูกต้อง')
+            return res.status(400).json('username หรือ password ไม่ถูกต้อง')
         }
-        if(!(mobile == user.MOBILE)){
-            throw new Error('username หรือ password ไม่ถูกต้อง')
+        /// เช็ค Password
+        if(!(password == user.PASSWORD)){
+            return res.status(400).json('username หรือ password ไม่ถูกต้อง')
         }
-
         const tokens = await conn.execute(`SELECT * FROM TOKENS WHERE USER_ID = :v1`,
         {v1:user.USER_ID},{outFormat:oracledb.OUT_FORMAT_OBJECT})
         var token = tokens.rows[0]?.TOKEN
@@ -260,7 +272,6 @@ router.post('/signin',async (req,res) => {
             await conn.execute(`INSERT INTO TOKENS(USER_ID, TOKEN) VALUES(:v1, :v2)`,
             {v1:user.USER_ID, v2:token}, {autoCommit:true})
         }
-        console.log(token)
         res.status(200).json({token: token})
     }catch(err){
         conn.rollback()
