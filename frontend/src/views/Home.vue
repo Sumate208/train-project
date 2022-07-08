@@ -30,10 +30,10 @@ export default {
     }
   },
   mounted () {
-    // this.inLogin()
+    this.isLogin()
   },
   methods: {
-    inLogin () {
+    isLogin () {
       const token = localStorage.getItem('token')
       if (!token) {
         this.$router.push({path: '/signin'})

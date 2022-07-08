@@ -28,7 +28,7 @@
               <figure class="image is-24x24 my-auto">
                 <img class="is-rounded" src="https://bulma.io/images/placeholders/128x128.png">
               </figure>
-              <span class="pl-3">{{ user.first_name }} {{ user.last_name }}</span>
+              <span class="pl-3">{{ user.FIRST_NAME }} {{ user.LAST_NAME }}</span>
             </div>
           </div>
           <div v-if="user" class="navbar-item">
@@ -51,7 +51,9 @@
       </div>
     </nav>
 
+    <!-- <router-view :key="$route.fullPath" @auth-change="onAuthChange" /> -->
     <router-view :key="$route.fullPath" @auth-change="onAuthChange" />
+
   </div>
 </template>
 
@@ -76,8 +78,12 @@ export default {
       }
     },
     getUser(){
-      axios.get('user').then(res=>{
+      axios.get('/user').then(res=>{
         this.user = res.data
+        console.log(err.response.data)
+
+      }).catch(err => {
+        console.log(err.response.data)
       })
     },
     logOut(){

@@ -52,6 +52,23 @@
       </div>
     </div>
   </section>
+
+  <!-- MODAL -->
+  <div class="modal" :class="{'is-active':modalAlert}">
+    <div class="modal-background"></div>
+    <div class="modal-card">
+      <header class="modal-card-head">
+        <p class="modal-card-title">Alert</p>
+        <button class="delete" aria-label="close" @click="modalAlert = false"></button>
+      </header>
+      <section class="modal-card-body">
+        {{ mAlertText }}
+      </section>
+      <footer class="modal-card-foot">
+        <button class="button" @click="modalAlert = false">OK</button>
+      </footer>
+    </div>
+  </div>
 </template>
 
 <script>
@@ -61,6 +78,7 @@ import useValidate from '@vuelidate/core'
 import { required,helpers} from '@vuelidate/validators'
 
 export default {
+  emits:["auth-change"],
   setup () {
     const state = reactive({
       username:"",
@@ -82,6 +100,8 @@ export default {
       remember:false,
       showPass: false,
       error:"",
+      mAlertText:"",
+      modalAlert:false,
     };
   },
   mounted () {
@@ -90,30 +110,36 @@ export default {
   },
   methods: {
     loadUsername(){
-        const rememLs = localStorage.getItem("remember");
-        if(rememLs)this.user = rememLs
+        const rememLs = localStorage.getItem("username");
+        if(rememLs){
+          this.state.username = rememLs;
+          this.remember = true;
+        }
     },
     submit() {
-        if(this.remember){
-            localStorage.setItem("username", this.user_number)
-        }
-        if(localStorage.getItem("username") && !this.remember){
-            localStorage.removeItem("username")
-        }
         const data = {
           username: this.state.username,
           password: this.state.password,
         }
         axios.post("http://localhost:3000/signin", data)
         .then(res => {
+          
+          this.mAlertText = "เข้าสู่ระบบ";
+          this.modalAlert = true;
+          if(this.remember){
+            localStorage.setItem("username", this.state.username)
+          }
+          if(localStorage.getItem("username") && !this.remember){
+            localStorage.removeItem("username")
+          }
           const token = res.data.token;
           localStorage.setItem('ts-token', token);
-          this.$emit('auth-change')
-          this.$router.push({path: '/'})
+          this.$emit('auth-change', "Hello");
+          this.$router.push({path: '/'});
         })
         .catch(err => {
-          // this.error = err.res.data;
-          console.log(err.response.data)
+          this.mAlertText = err.response.data;
+          this.modalAlert = true;
         })
     },
   },
@@ -135,5 +161,8 @@ export default {
     margin: 2px;
     width: 35px;
     height: 35px
+  }
+  .modal-card-foot{
+    justify-content: end;
   }
 </style>

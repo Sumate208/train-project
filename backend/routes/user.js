@@ -6,7 +6,7 @@ const bcrypt = require("bcrypt");
 const { generateToken } = require("../utils/token");
 const { generateOTP } = require("../utils/otp");
 const { isLoggedIn } = require("../middlewares/index");
-let pool;
+var pool;
 const cPool = async() =>{
     pool = await oracledb.createPool(config);
 }
@@ -16,7 +16,7 @@ router = express.Router();
 
 /// เช็คว่ารหัสบัตรประชาชนที่รับเข้ามาเคยลงทะเบียนไปหรือยัง
 const id_cardValidator = async (value, helpers) => {
-    let result;
+    var result;
     const conn = await pool.getConnection();
     try{
         result = await conn.execute("SELECT ID_CARD FROM USERS WHERE ID_CARD = :id",{id:{val:value}},{outFormat: oracledb.OBJECT})
@@ -35,7 +35,7 @@ const id_cardValidator = async (value, helpers) => {
 
 /// เช็คว่า เบอร์โทรศัพท์ ที่รับเข้ามาเคยลงทะเบียนไปหรือยัง
 const mobileValidator = async (value, helpers) => {
-    let result;
+    var result;
     const conn = await pool.getConnection();
     try{
         result = await conn.execute("SELECT MOBILE FROM USERS WHERE MOBILE = :mobile", {mobile:{val:value}},{outFormat: oracledb.OBJECT})
@@ -275,6 +275,10 @@ router.post('/signin',async (req,res) => {
             }
         }
     }
+})
+
+router.get('/user',isLoggedIn, async(req, res, next) => {
+    res.json(req.user)
 })
 
 module.exports = router;
